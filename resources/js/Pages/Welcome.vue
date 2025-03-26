@@ -1,8 +1,10 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
-import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
-import { ref } from 'vue';
+import { Swiper, SwiperSlide } from 'swiper/vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue'; 
+import axios from 'axios';
+
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -66,21 +68,38 @@ function toggleSidebar() {
 //  Dark Mode que se activa con un botón de la barra de navegación y  se guarda en la base de datos
 const darkMode = ref(false);
 
+onMounted(() => {
+    const saved = localStorage.getItem('darkMode');
+
+    if (saved === null) {
+        // Si no está en localStorage, tomar desde el backend
+        darkMode.value = $page.props.auth.user?.dark_mode ?? false;
+    } else {
+        darkMode.value = saved === 'true';
+    }
+
+    updateTheme();
+});
+
+function updateTheme() {
+    document.documentElement.classList.toggle('dark', darkMode.value);
+    localStorage.setItem('darkMode', darkMode.value);
+    document.body.style.background = darkMode.value
+        ? 'linear-gradient(to right, #6576B4, #9AA3C6)'
+        : '#fff';
+    document.body.style.color = darkMode.value ? '#fff' : '#000';
+}
+
 function toggleDarkMode() {
     darkMode.value = !darkMode.value;
-    document.body.classList.toggle('darkMode', darkMode.value);
-    localStorage.setItem('darkMode', darkMode.value);
-    document.body.style.background = `linear-gradient(to right, ${darkMode.value ? '#6576B4' : '#9AA3C6'}, ${darkMode.value ? '#9AA3C6' : '#6576B4'})`;
-    document.body.style.color = darkMode.value ? '#fff' : '#000';
+    updateTheme();
 
-    console.log(data);
-    // Update the user's preference in the database
-    axios.post('/darkMode', data, {
-        headers: {
-            'X-CSRF-TOKEN': csrfToken // Suponiendo que tienes el token guardado en alguna variable
-        }
-    });
+    // Guardar en backend
+    axios.post('/darkMode', { dark: darkMode.value })
+        .then(() => console.log('Dark mode guardado 🖤'))
+        .catch(() => console.warn('Error al guardar el dark mode'));
 }
+
 </script>
 
 <template>
@@ -252,7 +271,7 @@ function toggleDarkMode() {
                     </div>
                 </section>
 
-                <footer class="py-10 text-center text-sm text-black">
+                <footer class="py-10 text-center text-sm text-white">
                     <div class="grid grid-cols-1 gap-8 max-w-6xl mx-auto lg:grid-cols-2">
 
                         <div>

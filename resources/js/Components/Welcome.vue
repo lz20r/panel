@@ -1,9 +1,11 @@
 <script setup>
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale } from 'chart.js';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import { Line } from 'vue-chartjs';
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale } from 'chart.js';
+import axios from 'axios';
+
 
 // Register chart.js components
 ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale);
@@ -152,14 +154,64 @@ onMounted(() => {
                     </div>
                 </div>
             </div>
-            <!-- Footer -->
-            <div class="bg-gray-900 text-white p-4 mt-auto flex justify-between items-center">
-                <p>&copy; 2021 Todos los derechos reservados</p>
-                <a href="#" class="text-indigo-600 hover:text-white">Acerca de</a>
-                <a href="#" class="text-indigo-600 hover:text-white">Contacto</a>
-                <a href="#" class="text-indigo-600 hover:text-white">Términos y Condiciones</a>
-                <button class="ml-4 bg-indigo-600 px-4 py-2 rounded-lg">Cerrar Sesión</button>
-            </div>
         </div>
     </div>
+    <!-- Footer Cinammon -->
+    <!-- Footer con imagen y columnas tipo editorial -->
+    <footer class="relative text-white text-center py-5 px-1">
+        <div class="max-w-7xl mx-auto px-5 py-10 grid grid-cols-1 md:grid-cols-3 gap-8 z-10 relative">
+
+            <!-- Columna 1 -->
+            <div>
+                <h2 class="text-xl font-bold mb-4">Cinammon</h2>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#">Inicio</a></li>
+                    <li><a href="#">Sobre nosotros</a></li>
+                    <li><a href="#">Contacto</a></li>
+                </ul>
+            </div>
+
+            <!-- Columna 2 -->
+            <div>
+                <h2 class="text-xl font-bold mb-4">Servicios</h2>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#">APIs</a></li>
+                    <li><a href="#">Documentación</a></li>
+                    <li><a href="#">Hosting</a></li>
+                </ul>
+            </div>
+
+            <!-- Columna 3 -->
+            <div>
+                <h2 class="text-xl font-bold mb-4">Soporte</h2>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#">Discord</a></li>
+                    <li><a href="#">Tickets</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Imagen de fondo inferior -->
+        <div class="absolute inset-0 text-white">
+            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2100&q=80"
+                alt="Footer Background" class="w-full h-64 object-cover">
+            <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+            <div class="absolute bottom-4 left-5 flex gap-4 text-white">
+                <p class="mt-6">Copyright © 2022 Cinammon. All rights reserved. </p> 
+                <p class="mt-6"><a href="#" class="underline">Términos y Condiciones</a></p>
+            </div>
+            <div class="absolute bottom-4 right-6 flex gap-6 text-white">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-discord"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
 </template>
