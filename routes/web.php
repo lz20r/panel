@@ -51,7 +51,10 @@ Route::post('/darkMode', function (Request $request) {
     $user->dark_mode = $request->input('dark');
     $user->save();
     return response()->json(['success' => true]);
-})->middleware('auth');
+})->middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+]);
 
 // Perfil
 Route::get('/perfil', function () {
