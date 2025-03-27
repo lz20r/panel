@@ -4,10 +4,10 @@ import Welcome from '@/Components/Welcome.vue';
 </script>
 
 <template>
-    <AppLayout title="Home">
+    <AppLayout title="Users">
         <template #header>
             <h2 class="font-semibold text-xl text-white leading-tight">
-                Home
+                Users
             </h2>
         </template>
 

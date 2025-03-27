@@ -2,12 +2,11 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Welcome from '@/Components/Welcome.vue';
 </script>
-
 <template>
-    <AppLayout title="Home">
+    <AppLayout title="Mounts">
         <template #header>
             <h2 class="font-semibold text-xl text-white leading-tight">
-                Home
+                Mounts
             </h2>
         </template>
 
