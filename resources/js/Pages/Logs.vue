@@ -39,28 +39,26 @@ watch(filterType, () => {
             <!-- Filtro -->
             <div class="mb-4">
                 <label class="text-gray-500">Filtrar por tipo:
-                    <select v-model="filterType" @change="applyFilter" class="border rounded px-2 py-1 ml-2 text-black"
+                    <select v-model="filterType" @change="applyFilter"
+                        class="border rounded px-2 py-1 ml-2 text-gray-700">
                         name="select">
                         <option value="">Todos</option>
                         <!-- Filtros disponibles -->
                         <option v-for="filter in props.filters" :key="filter" :value="filter">{{ filter }}</option>
                         <!-- Filtros adicionales -->
-                        <option value="alert">Alerta</option>
-                        <option value="advertencia">Advertencia</option>
-                        <option value="critical">Crítica</option>
-                        <option value="login">Inicio de sesión</option>
-                        <option value="logout">Cierre de sesión</option>
-                        <option value="delete">Eliminación</option>
-                        <option value="update">Actualización</option>
-                        <option value="create">Creación</option>
-                        <option value="warning">Emergencia</option>
                         <option value="error">Error</option>
-                        <option value="success">Éxito</option>
-                        <option value="info">Información</option>
-                        <option value="notice">Notificación</option>
-                        <option value="debug">Depuración</option>
-                        <option value="trace">Rastreo</option>
-                        <option value="emergency">Sobrecarga</option>
+                        <option value="info">Info</option>
+                        <option value="debug">Debug</option>
+                        <option value="warning">Warning</option>
+                        <option value="notice">Notice</option>
+                        <option value="critical">Critical</option>
+                        <option value="alert">Alert</option>
+                        <option value="emergency">Emergency</option>
+                        <option value="routes">Routes</option>
+                        <option value="database">Database</option>
+                        <option value="queue">Queue</option>
+                        <option value="cache">Cache</option>
+                        <option value="session">Session</option>
                     </select>
                 </label>
             </div>
@@ -75,17 +73,10 @@ watch(filterType, () => {
                 <div v-for="log in props.logs.data" :key="log.id"
                     class="border p-4 mb-2 rounded shadow bg-white dark:bg-gray-900">
                     <p class="text-sm text-gray-500">🕒 {{ new Date(log.created_at).toLocaleString() }}</p>
-                    <p><strong>👤 Usuario:</strong> {{ log.user?.name ?? 'Sistema' }}</p>
+                    <p><strong>📝 Rutas:</strong> {{ log.message }}</p>
                     <p><strong>🔍 Tipo:</strong> {{ log.type }}</p>
-                    <p><strong>📝 Mensaje:</strong> {{ log.message }}</p>
-                    <!-- Muestra la ip extraida metadata -->
-                    <p><strong>🌐 IP:</strong> {{ log.metadata?.ip_address }}</p>
-                    <div v-if="log.metadata && Object.keys(log.metadata).length" class="mt-2">
-                        <p><strong>📦 Metadata:</strong></p>
-                        <pre class="bg-gray-100 text-xs p-2 rounded text-black dark:bg-gray-700 dark:text-white">
-                        {{ JSON.stringify(log.metadata, null, 2) }}
-                        </pre>
-                    </div>
+                    <p><strong>🌐 IP:</strong> {{ log.ip }}</p>
+                    <p><strong>📦 Metadata:</strong> {{ log.context }}</p>
                     <p class="text-xs text-gray-400 mt-2">🆔 ID: {{ log.id }}</p>
 
                 </div>
@@ -93,14 +84,28 @@ watch(filterType, () => {
 
             <!-- Paginación -->
             <div class="mt-4 flex gap-2">
-                <button v-if="props.logs?.prev_page_url" @click="goToPage(props.logs.prev_page_url)"
-                    class="px-3 py-1 bg-gray-200 rounded">
-                    ← Anterior
+                <!-- Botón anterior -->
+                <button
+                    class="border rounded px-2 py-1 text-gray-700 text-sm font-bold text-white bg-gray-800 hover:bg-gray-700"
+                    :disabled="props.logs.current_page === 1"
+                    @click="goToPage(route('logs', { page: props.logs.current_page - 1 }))">
+                    Anterior
                 </button>
-                <button v-if="props.logs?.next_page_url" @click="goToPage(props.logs.next_page_url)"
-                    class="px-3 py-1 bg-gray-200 rounded">
-                    Siguiente →
+
+                <!-- Página actual -->
+                <span
+                    class="border rounded px-2 py-1 text-gray-700 text-sm font-bold text-white bg-gray-800 hover:bg-gray-700">
+                    Página {{ props.logs.current_page }} de {{ props.logs.last_page }}
+                </span>
+
+                <!-- Botón siguiente -->
+                <button
+                    class="border rounded px-2 py-1 text-gray-700 text-sm font-bold text-white bg-gray-800 hover:bg-gray-700"
+                    :disabled="props.logs.current_page === props.logs.last_page"
+                    @click="goToPage(route('logs', { page: props.logs.current_page + 1 }))">
+                    Siguiente
                 </button>
+
             </div>
         </div>
     </AppLayout>

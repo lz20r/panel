@@ -18,8 +18,6 @@
 </head>
 
 <body class="bg-white dark:bg-black text-gray-900 dark:text-white">
-    <div id="app" data-page="{{ json_encode($page) }}"></div>
-
     @inertia
 </body>
 

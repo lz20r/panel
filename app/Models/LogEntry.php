@@ -3,36 +3,31 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
 
 class LogEntry extends Model
 {
-    use HasFactory;
+    public $timestamps = false; // ⚠️ Importante si no usas updated_at
 
     protected $fillable = [
         'user_id',
         'type',
         'message',
-        'metadata',
+        'url',
+        'user_agent',
+        'method',
+        'route',
+        'input',
+        'exception',
+        'ip',
+        'context',
     ];
 
     protected $casts = [
-        'metadata' => 'array',
+        'input' => 'array',
+        'context' => 'array',
     ];
-
-    public function user() {
-        return $this->belongsTo(User::class);
-    }
-
-    public function getMetadataAttribute($value) {
-        return json_decode($value);
-    }
-
-    public function setMetadataAttribute($value) {
-        $this->attributes['metadata'] = json_encode($value);
-    }
-
-    public function scopeByType($query, $type) {
-        return $query->where('type', $type);
-    }
 }

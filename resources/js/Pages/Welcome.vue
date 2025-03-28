@@ -101,6 +101,7 @@ function toggleDarkMode() {
 </script>
 
 <template>
+
     <Head title="Welcome" />
     <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
         <img id="background" class="absolute -left-20 top-0 max-w-[877px]"
@@ -172,7 +173,7 @@ function toggleDarkMode() {
                             <!-- Barra de búsqueda -->
                             <div class="hidden md:flex px-5 py-1 items-center gap-3">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Buscar..."
+                                <input type="text" placeholder="Buscar..." name="search"
                                     class="border-0 bg-[#8b96bf] rounded-full px-3 py-1 w-full focus:outline-none focus:ring-0" />
                             </div>
                         </div>
@@ -208,6 +209,12 @@ function toggleDarkMode() {
                                 <Link href="faq" class="hover:text-[#c6cde7] transition">FAQ</Link>
                                 <Link href="hub" class="hover:text-[#c6cde7] transition">Hub</Link>
                                 <Link href="eggs" class="hover:text-[#c6cde7] transition">Eggs</Link>
+                                <Link v-if="canLogin" :href="route('login')" class="hover:text-[#c6cde7] transition">
+                                Iniciar
+                                Sesión</Link>
+                                <Link v-if="canRegister" :href="route('register')"
+                                    class="hover:text-[#c6cde7] transition">
+                                Registrarse</Link>
                             </template>
                         </nav>
                     </div>
@@ -302,6 +309,20 @@ function toggleDarkMode() {
                     </p>
                 </footer>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div v-if="showModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-900 p-8 rounded-lg max-w-md w-full text-center shadow-xl">
+            <h2 class="text-2xl font-bold mb-4">Aceptar Términos</h2>
+            <p class="mb-4 text-sm">Debes aceptar los términos del servicio para continuar usando Cinashop.</p>
+            <div class="flex items-center justify-center gap-2 mb-4">
+                <input type="checkbox" id="accept" v-model="accepted" class="mr-2" />
+                <label for="accept">He leído y acepto los Términos del Servicio</label>
+            </div>
+            <button :disabled="!accepted" @click="acceptTerms"
+                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50">Continuar</button>
         </div>
     </div>
 </template>

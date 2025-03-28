@@ -13,36 +13,29 @@ class Logger
      *
      * @param string $message El mensaje del log
      * @param string $type Tipo de log (info, error, login, etc.)
-     * @param array $metadata Información adicional
+     * @param array $context Información adicional opcional (guardado como JSON)
      */
-    public static function log($message, $type = 'info', $metadata = [])
+    public static function log($message, $type = 'info', $context = [])
     {
         // Verifica si el usuario está autenticado
-        if (!Auth::check()) return;
+        //if (!Auth::check()) return;
 
-        $metadata['user_id'] = Auth::id();
-        $metadata['ip_address'] = request()->ip();
-        $metadata['url'] = request()->fullUrl();
-        $metadata['user_agent'] = request()->userAgent();
-        $metadata['method'] = request()->method();
-        $metadata['route'] = request()->route()->getName();
-        $metadata['input'] = request()->all();
-        $metadata['exception'] = null;
-        $metadata['created_at'] = now();
-        $metadata['updated_at'] = now();
-
-        // Asegúrate de agregar el tipo y el mensaje del log
-        $logData = [
-            'user_id' => $metadata['user_id'],
-            'type' => $type,
-            'message' => $message,
-            'metadata' => json_encode($metadata),  // Convertir metadata en JSON
-        ];
-
-        // Intentar registrar el log en la base de datos
         try {
-            LogEntry::create($logData);
-            Log::info('✅ Log guardado correctamente');
+            LogEntry::create([
+                'user_id'    => Auth::id(),
+                'type'       => $type,
+                'message'    => $message,
+                'url'        => request()->fullUrl(),
+                'user_agent' => request()->userAgent(),
+                'method'     => request()->method(),
+                'route'      => request()->route()?->getName(),
+                'input'      => request()->all(),
+                'exception'  => null,
+                'ip'         => request()->ip(),
+                'context'    => $context, // array o null
+            ]);
+
+            Log::info("✅ Log guardado: {$type} - {$message}");
         } catch (\Exception $e) {
             Log::error('❌ Error al guardar el log: ' . $e->getMessage());
         }

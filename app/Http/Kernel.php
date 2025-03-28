@@ -3,22 +3,16 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use App\Http\Middleware\EncryptCookies;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-use App\Http\Middleware\LogRouteAccess;
-
+use App\Http\Middleware\LogAccess;
 class Kernel extends HttpKernel
 {
     // No se necesita agregar middleware aquí
-    protected $middleware = [
-        'verificar.privacidad' => \App\Http\Middleware\VerificarPrivacidad::class,
-        'log' => LogRouteAccess::class,
-    ];
+    protected $middleware = [];
 
     // Middleware de grupo
     protected $middlewareGroups = [
@@ -39,7 +33,6 @@ class Kernel extends HttpKernel
 
     // Registrar middlewares por su alias
     protected $routeMiddleware = [
-        // Otros middlewares...
-        'log.route' => LogRouteAccess::class,  // Registra el middleware aquí
+        'log.access' => LogAccess::class,
     ];
 }

@@ -19,15 +19,14 @@
         <div class="hidden lg:flex gap-5">
             <Link href="/" class="hover:underline">Inicio</Link>
             <Link href="/privacidad" class="hover:underline">Privacidad</Link>
-            <Link v-if="$page.props.auth.user" :href="route('dashboard')"
-                class="hover:text-[#c6cde7] transition">Dashboard</Link>
+            <Link v-if="$page.props.auth.user" href="/dashboard" class="hover:text-[#c6cde7] transition">Dashboard</Link>
             <template v-else>
                 <Link href="/" class="hover:underline">Inicio</Link>
-                <Link href="/privacidad" class="hover:underline">Privacidad</Link> 
-                <Link v-if="canLogin" :href="route('login')" class="hover:text-[#c6cde7] transition">
+                <Link href="/privacidad" class="hover:underline">Privacidad</Link>
+                <Link v-if="canLogin" href="/login" class="hover:text-[#c6cde7] transition">
                 Iniciar
                 Sesión</Link>
-                <Link v-if="canRegister" :href="route('register')"
+                <Link v-if="canRegister" href="/register"
                     class="hover:text-[#c6cde7] transition">
                 Registrarse</Link>
             </template>
@@ -42,7 +41,7 @@
             <!-- Barra de búsqueda -->
             <div class="hidden md:flex px-5 py-1 items-center gap-3">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Buscar..."
+                <input type="text" placeholder="Buscar..." name="search"
                     class="border-0 bg-[#8b96bf] rounded-full px-3 py-1 w-full focus:outline-none focus:ring-0" />
             </div>
         </div>

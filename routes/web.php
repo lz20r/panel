@@ -1,11 +1,12 @@
 <?php
 
+use App\Helpers\Logger;
+use App\Http\Middleware\LogAccess;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-
 // Controladores
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SettingsController;
@@ -29,20 +30,58 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-});
+}) ->name('welcome') 
+    ->middleware(LogAccess::class);
 
-// Privacidad
-Route::get('/privacidad', function () {
-    return view('privacidad');
-})->middleware('auth')->name('privacidad.form');
+// Página de inicio de sesión
+Route::get('/login', function () {
+    return Inertia::render('Auth/Login');
+})->name('login')
+    ->middleware(LogAccess::class);
 
-Route::post('/privacidad/aceptar', function () {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-    $user->privacidad_aceptada = true;
-    $user->save();
-    return redirect('/')->with('success', 'Gracias por aceptar la política de privacidad.');
-})->middleware('auth')->name('privacidad.aceptar');
+// Página de registro
+Route::get('/register', function () {
+    return Inertia::render('Auth/Register');
+})->name('register')
+    ->middleware(LogAccess::class);
+
+
+// Página de restablecimiento de contraseña
+Route::get('/forgot-password', function () {
+    return Inertia::render('Auth/ForgotPassword');
+})->name('password.request')
+    ->middleware(LogAccess::class);
+
+// Página de restablecimiento de contraseña (enlace)
+Route::get('/reset-password/{token}', function (Request $request) {
+    return Inertia::render('Auth/ResetPassword', [
+        'email' => $request->input('email'),
+        'token' => $request->route('token'),
+    ]);
+})->name('password.reset')
+    ->middleware(LogAccess::class);
+
+// Página de verificación de correo electrónico
+Route::get('/verify-email/{id}/{hash}', function (Request $request) {
+    return Inertia::render('Auth/VerifyEmail', [
+        'email' => $request->input('email'),
+        'id' => $request->route('id'),
+        'hash' => $request->route('hash'),
+    ]);
+})->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify')
+    ->middleware(LogAccess::class);
+
+// Pagina de aceptación de términos
+Route::get('/terms', function () {
+    return Inertia::render('Auth/AcceptTerms');
+})->name('terms')
+    ->middleware(LogAccess::class);
+
+Route::get('/privacy', function () {
+    return Inertia::render('Auth/AcceptTerms');
+})->name('privacy')
+    ->middleware(LogAccess::class);    
 
 // Modo oscuro
 Route::post('/darkMode', function (Request $request) {
@@ -58,12 +97,13 @@ Route::post('/darkMode', function (Request $request) {
     session(['dark_mode' => $dark]);
 
     return response()->json(['success' => true, 'dark' => $dark]);
-})->middleware('auth');
+})->middleware('auth')->name('darkmode.update')
+    ->middleware(LogAccess::class);
 
 Route::post('/darkmode-toggle', function () {
     /** @var \App\Models\User $user */
     $user = Auth::user();
-    
+
     $dark = !session('dark_mode', false);
     session(['dark_mode' => $dark]);
 
@@ -73,33 +113,55 @@ Route::post('/darkmode-toggle', function () {
     return back();
 })->name('darkmode.toggle')->middleware('auth');
 
-// Perfil
-Route::get('/perfil', function () {
-    return 'Bienvenida a tu perfil privado, Nia!';
-})->middleware(['auth', \App\Http\Middleware\VerificarPrivacidad::class]);
-
 // Área protegida
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::middleware(['auth'])->group(function () { 
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/terms', function () {
+            return Inertia::render('TermsOfService');
+        })->name('terms.show');
+
         // Rutas que registrarán los logs al ser accedidas
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard')
+            ->middleware(LogAccess::class);
+        Route::get('/settings', [SettingsController::class, 'index'])
+            ->name('settings')
+            ->middleware(LogAccess::class);
         Route::get('/logs', [LogsController::class, 'index'])->name('logs');
-        Route::get('/server/eggs', [EggsController::class, 'index'])->name('server.eggs');
-        Route::get('/server/nodes', [NodesController::class, 'index'])->name('server.nodes');
-        Route::get('/server/servers', [ServerListController::class, 'index'])->name('server.servers');
+        Route::get('/server/eggs', [EggsController::class, 'index'])
+            ->name('server.eggs')
+            ->middleware(LogAccess::class);
+        Route::get('/server/nodes', [NodesController::class, 'index'])
+            ->name('server.nodes')
+            ->middleware(LogAccess::class);
+        Route::get('/server/servers', [ServerListController::class, 'index'])
+            ->name('server.servers')
+            ->middleware(LogAccess::class);
+        Route::get('/users/roles', [RolesController::class, 'index'])
+            ->name('users.roles')
+            ->middleware(LogAccess::class);
+        Route::get('/users', [UserController::class, 'index'])
+            ->name('users')
+            ->middleware(LogAccess::class);
 
-        Route::get('/users/roles', [RolesController::class, 'index'])->name('users.roles');
-        Route::get('/users', [UserController::class, 'index'])->name('users');
-
-        Route::get('/advanced/health', [HealthController::class, 'index'])->name('advanced.health');
-        Route::get('/advanced/api', [APIKeysController::class, 'index'])->name('advanced.api');
-        Route::get('/advanced/db', [DBHostsController::class, 'index'])->name('advanced.db');
-        Route::get('/advanced/mounts', [MountsController::class, 'index'])->name('advanced.mounts');
-        Route::get('/advanced/webhooks', [WebhooksController::class, 'index'])->name('advanced.webhooks');
+        Route::get('/advanced/health', [HealthController::class, 'index'])
+            ->name('advanced.health')
+            ->middleware(LogAccess::class);
+        Route::get('/advanced/api', [APIKeysController::class, 'index'])
+            ->name('advanced.api')
+            ->middleware(LogAccess::class);
+        Route::get('/advanced/db', [DBHostsController::class, 'index'])
+            ->name('advanced.db')
+            ->middleware(LogAccess::class);
+        Route::get('/advanced/mounts', [MountsController::class, 'index'])
+            ->name('advanced.mounts')
+            ->middleware(LogAccess::class);
+        Route::get('/advanced/webhooks', [WebhooksController::class, 'index'])
+            ->name('advanced.webhooks')
+            ->middleware(LogAccess::class);
     });
 });
