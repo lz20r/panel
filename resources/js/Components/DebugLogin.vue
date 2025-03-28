@@ -23,7 +23,6 @@ function toggleDarkMode() {
             console.log('✅ Modo oscuro guardado')
             error.value = null
 
-            // 📝 Enviamos log al backend
             axios.post('/logs', {
                 type: 'update',
                 message: `El usuario cambió al modo ${darkMode.value ? 'oscuro' : 'claro'}`,

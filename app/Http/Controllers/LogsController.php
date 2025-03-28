@@ -37,10 +37,11 @@ class LogsController extends Controller
             'emergency'
         ];
 
-        // Pasamos $logs y $filters a la vista
-        return view('logs.index', [
+        // Pasamos $logs y $filters a la vista de la base de datos usando inertia
+        return Inertia::render('Logs', [
             'logs' => $logs,
             'filters' => $filters,  // Esta es la variable que estaba causando el error
         ]);
+
     }
 }

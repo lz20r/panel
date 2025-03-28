@@ -38,29 +38,31 @@ watch(filterType, () => {
 
             <!-- Filtro -->
             <div class="mb-4">
-                <label>Filtrar por tipo:</label>
-                <select v-model="filterType" @change="applyFilter" class="border rounded px-2 py-1 ml-2 text-black">
-                    <option value="">Todos</option>
-                    <!-- Filtros disponibles -->
-                    <option v-for="filter in props.filters" :key="filter" :value="filter">{{ filter }}</option>
-                    <!-- Filtros adicionales -->
-                    <option value="alert">Alerta</option>
-                    <option value="advertencia">Advertencia</option>
-                    <option value="critical">Crítica</option>
-                    <option value="login">Inicio de sesión</option>
-                    <option value="logout">Cierre de sesión</option>
-                    <option value="delete">Eliminación</option>
-                    <option value="update">Actualización</option>
-                    <option value="create">Creación</option>
-                    <option value="warning">Emergencia</option>
-                    <option value="error">Error</option>
-                    <option value="success">Éxito</option>
-                    <option value="info">Información</option>
-                    <option value="notice">Notificación</option>
-                    <option value="debug">Depuración</option>
-                    <option value="trace">Rastreo</option>
-                    <option value="emergency">Sobrecarga</option>
-                </select>
+                <label class="text-gray-500">Filtrar por tipo:
+                    <select v-model="filterType" @change="applyFilter" class="border rounded px-2 py-1 ml-2 text-black"
+                        name="select">
+                        <option value="">Todos</option>
+                        <!-- Filtros disponibles -->
+                        <option v-for="filter in props.filters" :key="filter" :value="filter">{{ filter }}</option>
+                        <!-- Filtros adicionales -->
+                        <option value="alert">Alerta</option>
+                        <option value="advertencia">Advertencia</option>
+                        <option value="critical">Crítica</option>
+                        <option value="login">Inicio de sesión</option>
+                        <option value="logout">Cierre de sesión</option>
+                        <option value="delete">Eliminación</option>
+                        <option value="update">Actualización</option>
+                        <option value="create">Creación</option>
+                        <option value="warning">Emergencia</option>
+                        <option value="error">Error</option>
+                        <option value="success">Éxito</option>
+                        <option value="info">Información</option>
+                        <option value="notice">Notificación</option>
+                        <option value="debug">Depuración</option>
+                        <option value="trace">Rastreo</option>
+                        <option value="emergency">Sobrecarga</option>
+                    </select>
+                </label>
             </div>
 
             <!-- Sin resultados -->
@@ -76,12 +78,12 @@ watch(filterType, () => {
                     <p><strong>👤 Usuario:</strong> {{ log.user?.name ?? 'Sistema' }}</p>
                     <p><strong>🔍 Tipo:</strong> {{ log.type }}</p>
                     <p><strong>📝 Mensaje:</strong> {{ log.message }}</p>
-                <!-- Muestra la ip extraida metadata -->
+                    <!-- Muestra la ip extraida metadata -->
                     <p><strong>🌐 IP:</strong> {{ log.metadata?.ip_address }}</p>
                     <div v-if="log.metadata && Object.keys(log.metadata).length" class="mt-2">
                         <p><strong>📦 Metadata:</strong></p>
                         <pre class="bg-gray-100 text-xs p-2 rounded text-black dark:bg-gray-700 dark:text-white">
-                            {{ JSON.stringify(log.metadata, null, 2) }}
+                        {{ JSON.stringify(log.metadata, null, 2) }}
                         </pre>
                     </div>
                     <p class="text-xs text-gray-400 mt-2">🆔 ID: {{ log.id }}</p>

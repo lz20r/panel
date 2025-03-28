@@ -1,66 +1,67 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { Link, router, usePage } from '@inertiajs/vue3';
-import ApplicationMark from '@/Components/ApplicationMark.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-import '@fortawesome/fontawesome-free/css/all.min.css';
-import axios from 'axios';
+    import { ref, onMounted } from 'vue';
+    import { Link, router, usePage, Head } from '@inertiajs/vue3';
+    import ApplicationMark from '@/Components/ApplicationMark.vue';
+    import Dropdown from '@/Components/Dropdown.vue';
+    import DropdownLink from '@/Components/DropdownLink.vue';
+    import '@fortawesome/fontawesome-free/css/all.min.css';
+    import axios from 'axios';
 
-const currentTab = ref(route().current('dashboard') ? 'dashboard' : (route().current('settings') ? 'settings' : 'logs'));
-const logout = () => router.post(route('logout'));
-const showingNavigationDropdown = ref(false);
-const page = usePage();
+    const currentTab = ref(route().current('dashboard') ? 'dashboard' : (route().current('settings') ? 'settings' : 'logs'));
+    const logout = () => router.post(route('logout'));
+    const showingNavigationDropdown = ref(false);
+    const page = usePage();
 
-const switchToTeam = (team) => {
-    router.put(route('current-team.update'), {
-        team_id: team.id,
-    }, {
-        preserveState: false,
+    const switchToTeam = (team) => {
+        router.put(route('current-team.update'), {
+            team_id: team.id,
+        }, {
+            preserveState: false,
+        });
+    };
+
+    const darkMode = ref(false);
+
+    onMounted(() => {
+        const saved = localStorage.getItem('darkMode');
+
+        if (saved === null) {
+            darkMode.value = $page.props.auth.user?.dark_mode ?? false;
+        } else {
+            darkMode.value = saved === 'true';
+        }
+
+        updateTheme();
     });
-};
-
-const darkMode = ref(false);
-
-onMounted(() => {
-    const saved = localStorage.getItem('darkMode');
-
-    if (saved === null) {
-        // Si no está en localStorage, tomar desde el backend
-        darkMode.value = $page.props.auth.user?.dark_mode ?? false;
-    } else {
-        darkMode.value = saved === 'true';
+    function updateTheme() {
+        document.documentElement.classList.toggle('dark', darkMode.value);
+        localStorage.setItem('darkMode', darkMode.value);
+        document.body.style.background = darkMode.value
+            ? '#000000'
+            : '#ffffff';
+        document.body.style.color = darkMode.value ? '#fff' : '#000';
     }
 
-    updateTheme();
-});
+    function toggleDarkMode() {
+        darkMode.value = !darkMode.value;
+        updateTheme();
 
-function updateTheme() {
-    document.documentElement.classList.toggle('dark', darkMode.value);
-    localStorage.setItem('darkMode', darkMode.value);
-    document.body.style.background = darkMode.value
-        ? '#000000'
-        : '#ffffff';
-    document.body.style.color = darkMode.value ? '#fff' : '#000';
-}
-
-function toggleDarkMode() {
-    darkMode.value = !darkMode.value;
-    updateTheme();
-
-    // Guardar en backend
-    axios.post('/darkMode', { dark: darkMode.value })
-        .then(() => console.log('Dark mode guardado 🖤'))
-        .catch(() => console.warn('Error al guardar el dark mode'));
-}
+        axios.post('/darkMode', {
+            dark: darkMode.value
+        })
+            .then(() => {
+                console.log('Dark mode guardado 🖤');
+            })
+            .catch((error) => {
+                console.warn('Error al guardar el dark mode', error);
+            });
+    }
 </script>
 
 <template>
     <div>
 
-        <Head :title="title" />
-
-        <Banner />
+        <Head title="Dashboard" />
 
         <div class="min-h-screen">
             <nav class="border-b border-zinc-290">
@@ -154,14 +155,13 @@ function toggleDarkMode() {
                                 <div class="px-3 text-gray-400">
                                     <i class="fas fa-search"></i>
                                 </div>
-                                <input type="search" placeholder="Search..."
+                                <input type="search" placeholder="Search..." name="search"
                                     class="bg-transparent border-none text-sm text-gray-900 dark:text-black placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 py-1.5 px-2" />
                             </div>
                             <!-- Notifications Dropdown -->
                             <Dropdown align="right" width="48">
                                 <template #trigger>
-                                    <button
-                                        class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-zinc-600">
+                                    <button class="flex text-sm focus:outline-none focus:border-zinc-600">
                                         <i class="fas fa-bell"></i>
                                     </button>
                                 </template>
@@ -173,8 +173,7 @@ function toggleDarkMode() {
                             <!-- Messages Dropdown -->
                             <Dropdown align="right" width="48">
                                 <template #trigger>
-                                    <button
-                                        class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-zinc-600">
+                                    <button class="flex text-sm focus:outline-none focus:border-zinc-600">
                                         <i class="fas fa-envelope"></i>
                                     </button>
                                 </template>

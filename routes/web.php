@@ -50,8 +50,28 @@ Route::post('/darkMode', function (Request $request) {
     $user = Auth::user();
     $user->dark_mode = $request->input('dark');
     $user->save();
-    return response()->json(['success' => true]);
+
+    // Asegúrate que sea booleano
+    $dark = $request->boolean('dark');
+
+    $user->update(['dark_mode' => $dark]);
+    session(['dark_mode' => $dark]);
+
+    return response()->json(['success' => true, 'dark' => $dark]);
 })->middleware('auth');
+
+Route::post('/darkmode-toggle', function () {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    
+    $dark = !session('dark_mode', false);
+    session(['dark_mode' => $dark]);
+
+    // Si quieres guardarlo también en la base de datos:
+    $user->update(['dark_mode' => $dark]);
+
+    return back();
+})->name('darkmode.toggle')->middleware('auth');
 
 // Perfil
 Route::get('/perfil', function () {

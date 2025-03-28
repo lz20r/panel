@@ -12,22 +12,18 @@ class LogRouteAccess
 {
     public function handle(Request $request, Closure $next)
     {
-        // Agrega un log para verificar si se ejecuta el middleware
+
         Log::info('Middleware ejecutado', ['route' => $request->route()->getName()]);
 
-        // Solo registrar el log si el usuario está autenticado
         if (Auth::check()) {
-            $routeName = $request->route()->getName();  // Obtiene el nombre de la ruta actual
-            $user = Auth::user();  // Obtiene el usuario autenticado
-
-            // Registrar un log en el sistema para verificar que el middleware se ejecuta
+            $routeName = $request->route()->getName();
+            $user = Auth::user();
             Log::info('Acceso a la ruta', [
                 'route' => $routeName,
                 'user' => $user ? $user->id : 'Invitado',
                 'ip_address' => $request->ip(),
             ]);
 
-            // Guardar el log en la base de datos
             try {
                 LogEntry::create([
                     'type' => 'info',
