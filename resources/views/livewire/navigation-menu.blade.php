@@ -39,10 +39,6 @@
                     class="fab fa-github text-xl cursor-pointer hover:text-gray-400"></i></a>
             <a href="https://discord.com" target="_blank"><i
                     class="fab fa-discord text-xl cursor-pointer hover:text-gray-400"></i></a>
-            <button @click="toggleDarkMode">
-                <i :class="darkMode ? 'fas fa-moon' : 'fas fa-sun'"
-                    class="text-xl cursor-pointer hover:text-gray-400"></i>
-            </button>
             <!-- Barra de búsqueda -->
             <div class="hidden md:flex px-5 py-1 items-center gap-3">
                 <i class="fas fa-search"></i>

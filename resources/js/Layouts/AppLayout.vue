@@ -1,10 +1,11 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import axios from 'axios';
 
 const currentTab = ref(route().current('dashboard') ? 'dashboard' : (route().current('settings') ? 'settings' : 'logs'));
 const logout = () => router.post(route('logout'));
@@ -18,6 +19,40 @@ const switchToTeam = (team) => {
         preserveState: false,
     });
 };
+
+const darkMode = ref(false);
+
+onMounted(() => {
+    const saved = localStorage.getItem('darkMode');
+
+    if (saved === null) {
+        // Si no está en localStorage, tomar desde el backend
+        darkMode.value = $page.props.auth.user?.dark_mode ?? false;
+    } else {
+        darkMode.value = saved === 'true';
+    }
+
+    updateTheme();
+});
+
+function updateTheme() {
+    document.documentElement.classList.toggle('dark', darkMode.value);
+    localStorage.setItem('darkMode', darkMode.value);
+    document.body.style.background = darkMode.value
+        ? '#000000'
+        : '#ffffff';
+    document.body.style.color = darkMode.value ? '#fff' : '#000';
+}
+
+function toggleDarkMode() {
+    darkMode.value = !darkMode.value;
+    updateTheme();
+
+    // Guardar en backend
+    axios.post('/darkMode', { dark: darkMode.value })
+        .then(() => console.log('Dark mode guardado 🖤'))
+        .catch(() => console.warn('Error al guardar el dark mode'));
+}
 </script>
 
 <template>
@@ -27,7 +62,7 @@ const switchToTeam = (team) => {
 
         <Banner />
 
-        <div class="min-h-screen text-white bg-black dark:bg-black/90">
+        <div class="min-h-screen">
             <nav class="border-b border-zinc-290">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between text-sm">
                     <!-- Logo + Tabs -->
@@ -113,15 +148,15 @@ const switchToTeam = (team) => {
                         </div>
                     </div>
                     <div class="flex items-center gap-5">
-                        <div
-                            class="hidden md:flex items-center rounded-lg shadow-sm ring-1 ring-gray-200 dark:ring-white/20 focus-within:ring-2 focus-within:ring-primary-600 bg-white dark:bg-white/5">
-                            <div class="px-3 text-gray-400">
-                                <i class="fas fa-search"></i>
-                            </div>
-                            <input type="search" placeholder="Search..."
-                                class="bg-transparent border-none text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 py-1.5 px-2" />
-                        </div>
                         <div class="flex items-center gap-2">
+                            <div
+                                class="block flex items-center rounded-lg shadow-sm ring-1 ring-gray-200 dark:ring-black/20 focus-within:ring-2 focus-within:ring-primary-600 bg-black dark:bg-black/5">
+                                <div class="px-3 text-gray-400">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <input type="search" placeholder="Search..."
+                                    class="bg-transparent border-none text-sm text-gray-900 dark:text-black placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 py-1.5 px-2" />
+                            </div>
                             <!-- Notifications Dropdown -->
                             <Dropdown align="right" width="48">
                                 <template #trigger>
@@ -148,6 +183,11 @@ const switchToTeam = (team) => {
                                     <div class="px-4 py-2 text-xs text-gray-400">No new messages</div>
                                 </template>
                             </Dropdown>
+                            <!-- Dark Mode Toggle -->
+                            <button @click="toggleDarkMode"
+                                class="flex text-sm focus:outline-none focus:border-zinc-600">
+                                <i class="fas" :class="darkMode ? 'fa-moon' : 'fa-sun'"></i>
+                            </button>
                         </div>
 
                         <!-- Avatar Dropdown -->
@@ -173,79 +213,10 @@ const switchToTeam = (team) => {
                             </template>
                         </Dropdown>
 
-                        <!-- Team List Laravel -->
-                        <div class="ms-3 relative">
-                            <!-- Teams Dropdown -->
-                            <Dropdown v-if="$page.props.jetstream.hasTeamFeatures" align="right" width="48">
-                                <template #trigger>
-                                    <span class="inline-flex rounded-md">
-                                        <button type="button"
-                                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
-                                            {{ $page.props.auth.user.current_team.name }}
-
-                                            <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                                stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-                                            </svg>
-                                        </button>
-                                    </span>
-                                </template>
-
-                                <template #content>
-                                    <div class="w-60">
-                                        <!-- Team Management -->
-                                        <div class="block px-4 py-2 text-xs text-gray-400">
-                                            Manage Team
-                                        </div>
-
-                                        <!-- Team Settings -->
-                                        <DropdownLink :href="route('teams.show', $page.props.auth.user.current_team)">
-                                            Team Settings
-                                        </DropdownLink>
-
-                                        <DropdownLink v-if="$page.props.jetstream.canCreateTeams"
-                                            :href="route('teams.create')">
-                                            Create New Team
-                                        </DropdownLink>
-
-                                        <!-- Team Switcher -->
-                                        <template v-if="$page.props.auth.user.all_teams.length > 1">
-                                            <div class="border-t border-gray-200" />
-
-                                            <div class="block px-4 py-2 text-xs text-gray-400">
-                                                Switch Teams
-                                            </div>
-
-                                            <template v-for="team in $page.props.auth.user.all_teams" :key="team.id">
-                                                <form @submit.prevent="switchToTeam(team)">
-                                                    <DropdownLink as="button">
-                                                        <div class="flex items-center">
-                                                            <svg v-if="team.id == $page.props.auth.user.current_team_id"
-                                                                class="me-2 size-5 text-green-400"
-                                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                                viewBox="0 0 24 24" stroke-width="1.5"
-                                                                stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                            </svg>
-
-                                                            <div>{{ team.name }}</div>
-                                                        </div>
-                                                    </DropdownLink>
-                                                </form>
-                                            </template>
-                                        </template>
-                                    </div>
-                                </template>
-                            </Dropdown>
-                        </div>
-
 
                         <!-- Hamburger -->
                         <button @click="showingNavigationDropdown = !showingNavigationDropdown"
-                            class="sm:hidden text-gray-400 focus:outline-none focus:text-white">
+                            class="sm:hidden text-gray-400 focus:outline-none focus:text-black">
                             <i class="fas" :class="showingNavigationDropdown ? 'fa-times' : 'fa-bars'"></i>
                         </button>
                     </div>
@@ -258,7 +229,6 @@ const switchToTeam = (team) => {
                 <DropdownLink :href="route('dashboard')" class="py-2 px-4">Dashboard</DropdownLink>
                 <DropdownLink :href="route('settings')" class="py-2 px-4">Settings</DropdownLink>
                 <DropdownLink :href="route('logs')" class="py-2 px-4">Logs</DropdownLink>
-
                 <div class="border-t border-zinc-700 my-1" />
                 <div class="py-2 px-4 text-xs text-gray-400">Server</div>
                 <DropdownLink :href="route('server.eggs')" class="py-2 px-4">Eggs</DropdownLink>
@@ -284,7 +254,6 @@ const switchToTeam = (team) => {
                 <form @submit.prevent="logout">
                     <DropdownLink as="button" class="py-2 px-4">Log Out</DropdownLink>
                 </form>
-                <div class="border-t border-zinc-700 my-1" />
             </div>
 
 

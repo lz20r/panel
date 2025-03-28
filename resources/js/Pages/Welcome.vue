@@ -2,7 +2,7 @@
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue'; 
+import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -65,7 +65,6 @@ function toggleSidebar() {
     }
 }
 
-//  Dark Mode que se activa con un botón de la barra de navegación y  se guarda en la base de datos
 const darkMode = ref(false);
 
 onMounted(() => {
@@ -99,11 +98,9 @@ function toggleDarkMode() {
         .then(() => console.log('Dark mode guardado 🖤'))
         .catch(() => console.warn('Error al guardar el dark mode'));
 }
-
 </script>
 
 <template>
-
     <Head title="Welcome" />
     <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
         <img id="background" class="absolute -left-20 top-0 max-w-[877px]"

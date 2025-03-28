@@ -51,10 +51,7 @@ Route::post('/darkMode', function (Request $request) {
     $user->dark_mode = $request->input('dark');
     $user->save();
     return response()->json(['success' => true]);
-})->middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-]);
+})->middleware('auth');
 
 // Perfil
 Route::get('/perfil', function () {
@@ -67,20 +64,22 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-    Route::get('/logs', [LogsController::class, 'index'])->name('logs');
+    Route::middleware(['auth'])->group(function () { 
+        // Rutas que registrarán los logs al ser accedidas
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::get('/logs', [LogsController::class, 'index'])->name('logs');
+        Route::get('/server/eggs', [EggsController::class, 'index'])->name('server.eggs');
+        Route::get('/server/nodes', [NodesController::class, 'index'])->name('server.nodes');
+        Route::get('/server/servers', [ServerListController::class, 'index'])->name('server.servers');
 
-    Route::get('/server/eggs', [EggsController::class, 'index'])->name('server.eggs');
-    Route::get('/server/nodes', [NodesController::class, 'index'])->name('server.nodes');
-    Route::get('/server/servers', [ServerListController::class, 'index'])->name('server.servers');
+        Route::get('/users/roles', [RolesController::class, 'index'])->name('users.roles');
+        Route::get('/users', [UserController::class, 'index'])->name('users');
 
-    Route::get('/users/roles', [RolesController::class, 'index'])->name('users.roles');
-    Route::get('/users', [UserController::class, 'index'])->name('users');
-
-    Route::get('/advanced/health', [HealthController::class, 'index'])->name('advanced.health');
-    Route::get('/advanced/api', [APIKeysController::class, 'index'])->name('advanced.api');
-    Route::get('/advanced/db', [DBHostsController::class, 'index'])->name('advanced.db');
-    Route::get('/advanced/mounts', [MountsController::class, 'index'])->name('advanced.mounts');
-    Route::get('/advanced/webhooks', [WebhooksController::class, 'index'])->name('advanced.webhooks');
+        Route::get('/advanced/health', [HealthController::class, 'index'])->name('advanced.health');
+        Route::get('/advanced/api', [APIKeysController::class, 'index'])->name('advanced.api');
+        Route::get('/advanced/db', [DBHostsController::class, 'index'])->name('advanced.db');
+        Route::get('/advanced/mounts', [MountsController::class, 'index'])->name('advanced.mounts');
+        Route::get('/advanced/webhooks', [WebhooksController::class, 'index'])->name('advanced.webhooks');
+    });
 });
