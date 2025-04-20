@@ -1,111 +1,112 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { router } from '@inertiajs/vue3'
 
-// Define las props que recibes del backend
+// Props del backend
 const props = defineProps({
     logs: Object,
-    filters: Array,
+    filters: Object,
+    selectedFilter: String,
 })
 
-// Crea una variable reactiva para almacenar el filtro seleccionado
-const filterType = ref('')
+// Filtro seleccionado
+const filterType = ref(props.selectedFilter || '')
 
-// Función para aplicar el filtro
+// Al cambiar el filtro
 function applyFilter() {
-    router.get(route('logs'), { type: filterType.value }, {
-        preserveState: true,
-        preserveScroll: true, // Mantiene el scroll al aplicar el filtro
+    router.get(route('logs'), {
+        type: filterType.value
+    }, {
+        preserveScroll: true,
+        preserveState: false,
     })
 }
 
-// Función para navegar a la siguiente o anterior página de logs
+// Navegación entre páginas
 function goToPage(url) {
-    router.visit(url)
+    router.visit(url, {
+        preserveScroll: true,
+        preserveState: true,
+    })
 }
 
-// Verifica si hay un cambio en el filtro y vuelve a aplicar el filtro automáticamente
-watch(filterType, () => {
-    applyFilter()
-})
+// Borrar logs antiguos
+function clearLogs() {
+    router.visit(route('logs.clear'), {
+        method: 'delete',
+        preserveScroll: true,
+        preserveState: false,
+    })
+}
 </script>
 
 <template>
     <AppLayout layout="Logs">
         <div class="p-6">
             <h1 class="text-2xl font-bold mb-4">📜 Logs del sistema</h1>
+            <h2 class="text-gray-500 mb-4">Total de logs: {{ props.logs.total }}</h2>
 
-            <!-- Filtro -->
+            <!-- 🔘 Filtro -->
             <div class="mb-4">
-                <label class="text-gray-500">Filtrar por tipo:
-                    <select v-model="filterType" @change="applyFilter"
+                <label class="text-gray-500">
+                    Filtrar por tipo:
+                    <select name="type" v-model="filterType" @change="applyFilter"
                         class="border rounded px-2 py-1 ml-2 text-gray-700">
-                        name="select">
                         <option value="">Todos</option>
-                        <!-- Filtros disponibles -->
-                        <option v-for="filter in props.filters" :key="filter" :value="filter">{{ filter }}</option>
-                        <!-- Filtros adicionales -->
-                        <option value="error">Error</option>
-                        <option value="info">Info</option>
-                        <option value="debug">Debug</option>
-                        <option value="warning">Warning</option>
-                        <option value="notice">Notice</option>
-                        <option value="critical">Critical</option>
-                        <option value="alert">Alert</option>
-                        <option value="emergency">Emergency</option>
-                        <option value="routes">Routes</option>
-                        <option value="database">Database</option>
-                        <option value="queue">Queue</option>
-                        <option value="cache">Cache</option>
-                        <option value="session">Session</option>
+                        <option v-for="(label, key) in props.filters" :key="key" :value="key">
+                            {{ label }}
+                        </option>
                     </select>
                 </label>
             </div>
 
-            <!-- Sin resultados -->
+            <!-- 🚫 Sin resultados -->
             <div v-if="!props.logs?.data?.length">
                 <p class="text-gray-400">No hay logs para mostrar.</p>
             </div>
 
-            <!-- Lista de logs -->
+            <!-- 📋 Lista de logs -->
             <div v-else>
                 <div v-for="log in props.logs.data" :key="log.id"
-                    class="border p-4 mb-2 rounded shadow bg-white dark:bg-gray-900">
-                    <p class="text-sm text-gray-500">🕒 {{ new Date(log.created_at).toLocaleString() }}</p>
-                    <p><strong>📝 Rutas:</strong> {{ log.message }}</p>
-                    <p><strong>🔍 Tipo:</strong> {{ log.type }}</p>
-                    <p><strong>🌐 IP:</strong> {{ log.ip }}</p>
-                    <p><strong>📦 Metadata:</strong> {{ log.context }}</p>
-                    <p class="text-xs text-gray-400 mt-2">🆔 ID: {{ log.id }}</p>
-
+                    class="shadow-md rounded-lg p-4 mb-4 border border-gray-200 hover:border-gray-300">
+                    <p class="text-sm text-gray-500"><strong>🕒 Fecha:</strong>
+                        {{ new Date(log.created_at).toLocaleString() }}
+                    </p>
+                    <p class="text-sm text-gray-500"><strong>📝 Ruta:</strong> {{ log.message }}</p>
+                    <p class="text-sm text-gray-500"><strong>🔍 Tipo:</strong> <span
+                            class="font-bold">{{ log.type }}</span></p>
+                    <p class="text-sm text-gray-500"><strong>🌐 IP:</strong> {{ log.ip }}</p>
+                    <p class="text-sm text-gray-500"><strong>🔧 Método:</strong> {{ log.method }}</p>
+                    <p class="text-sm text-gray-500"><strong>📍 Ruta:</strong> {{ log.route || 'N/A' }}</p>
+                    <p class="text-sm text-gray-500"><strong>🧭 Navegador:</strong> {{ log.user_agent }}</p>
+                    <p class="text-sm text-gray-500"><strong>📦 Contexto:</strong> {{ log.context }}</p>
                 </div>
             </div>
 
-            <!-- Paginación -->
-            <div class="mt-4 flex gap-2">
-                <!-- Botón anterior -->
-                <button
-                    class="border rounded px-2 py-1 text-gray-700 text-sm font-bold text-white bg-gray-800 hover:bg-gray-700"
+            <!-- ⏭ Paginación -->
+            <div class="mt-4 flex gap-2 items-center">
+                <button @click="goToPage(route('logs', { page: props.logs.current_page - 1, type: filterType.value }))"
                     :disabled="props.logs.current_page === 1"
-                    @click="goToPage(route('logs', { page: props.logs.current_page - 1 }))">
+                    class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">
                     Anterior
                 </button>
 
-                <!-- Página actual -->
-                <span
-                    class="border rounded px-2 py-1 text-gray-700 text-sm font-bold text-white bg-gray-800 hover:bg-gray-700">
+                <span class="text-sm">
                     Página {{ props.logs.current_page }} de {{ props.logs.last_page }}
                 </span>
 
-                <!-- Botón siguiente -->
-                <button
-                    class="border rounded px-2 py-1 text-gray-700 text-sm font-bold text-white bg-gray-800 hover:bg-gray-700"
+                <button @click="goToPage(route('logs', { page: props.logs.current_page + 1, type: filterType.value }))"
                     :disabled="props.logs.current_page === props.logs.last_page"
-                    @click="goToPage(route('logs', { page: props.logs.current_page + 1 }))">
+                    class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded">
                     Siguiente
                 </button>
 
+                <!-- 🧹 Botón de limpieza -->
+                <button @click="clearLogs"
+                    class="ml-auto bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm">
+                    🧹 Limpiar logs antiguos
+                </button>
             </div>
         </div>
     </AppLayout>
