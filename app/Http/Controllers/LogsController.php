@@ -9,39 +9,56 @@ class LogsController extends Controller
 {
     public function index()
     {
-        // Obtener el tipo de log que se pasa desde el frontend (sin usar Request)
-        $type = request()->query('type', '');  // Obtener 'type' directamente desde la URL
+        $type = strtolower(request()->query('type', ''));
 
-        // Obtener los logs con paginación y aplicar filtro si se pasa un tipo
-        $logs = LogEntry::when($type, function ($query) use ($type) {
-            return $query->where('type', $type);
-        })->latest()->paginate(10);
+        $logs = LogEntry::when(
+            $type,
+            fn($query) =>
+            $query->whereRaw('LOWER(type) = ?', [$type])
+        )->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends(['type' => $type]); 
 
-        // Filtros disponibles
+        // Filtros traducidos
         $filters = [
-            'alert',
-            'advertencia',
-            'critical',
-            'login',
-            'logout',
-            'delete',
-            'update',
-            'create',
-            'warning',
-            'error',
-            'success',
-            'info',
-            'notice',
-            'debug',
-            'trace',
-            'emergency'
+            'access' => 'Acceso',
+            'error' => 'Error',
+            'warning' => 'Advertencia',
+            'debug' => 'Depuración',
+            'info' => 'Información',
+            'sql' => 'SQL',
+            'request' => 'Petición',
+            'response' => 'Respuesta',
+            'login' => 'Inicio de sesión',
+            'logout' => 'Cierre de sesión',
+            'register' => 'Registro',
+            'lockout' => 'Bloqueo',
+            'password_reset' => 'Restablecimiento de contraseña',
+            'password_change' => 'Cambio de contraseña',
+            'email_change' => 'Cambio de email',
+            'two_factor' => 'Autenticación de dos factores',
+            'two_factor_enabled' => 'Autenticación de dos factores habilitada',
+            'two_factor_disabled' => 'Autenticación de dos factores deshabilitada',
         ];
 
-        // Pasamos $logs y $filters a la vista de la base de datos usando inertia
         return Inertia::render('Logs', [
             'logs' => $logs,
-            'filters' => $filters,  // Esta es la variable que estaba causando el error
+            'filters' => $filters,
+            'selectedFilter' => $type, // ✅ Enviamos cuál está activo
         ]);
+    }
 
+    public function clearOld()
+    {
+        $total = LogEntry::count();
+
+        if ($total > 100) {
+            $exceso = $total - 100;
+            LogEntry::orderBy('created_at')->limit($exceso)->delete();
+
+            return redirect()->route('logs')->with('success', "🧹 Se eliminaron $exceso logs antiguos.");
+        }
+
+        return redirect()->route('logs')->with('info', '✅ No hay suficientes logs para limpiar.');
     }
 }
