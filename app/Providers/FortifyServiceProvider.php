@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
+use Laravel\Fortify\Contracts\RegisterResponse;
+use Laravel\Fortify\Actions\AttemptToAuthenticate;
+use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
+use Illuminate\Auth\Events\Login;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -33,12 +41,48 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
-        RateLimiter::for('login', function (Request $request) {
-            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
+        // 🎯 Personalizamos el pipeline de autenticación
+        Fortify::authenticateThrough(function ($request) {
+            return [
+                AttemptToAuthenticate::class,
+                PrepareAuthenticatedSession::class,
 
+                // ✅ Registrar inicio de sesión y guardar datos para el logout
+                function ($request, $next) {
+                    if (Auth::check()) {
+                        $user = Auth::user();
+
+                        // 🧠 Guardamos los datos en la sesión para usarlos en el logout
+                        $request->session()->put('user_id_backup', $user->id);
+                        $request->session()->put('user_name_backup', $user->name);
+                        $request->session()->put('user_email_backup', $user->email);
+
+                        // 📝 Registramos el login con el logger
+                        \App\Helpers\Logger::log(
+                            '🔵 Usuario inició sesión: ' . $user->name . ' (' . $user->email . ')',
+                            'login',
+                            [
+                                'user_id' => $user->id,
+                                'timestamp' => now(),
+                            ]
+                        );
+                    } else {
+                        // ⛔ Si no está autenticado, lo redirigimos al login
+                        return redirect()->route('login');
+                    }
+
+                    return $next($request);
+                },
+            ];
+        });
+
+        // ⏱️ Limitar intentos de login
+        RateLimiter::for('login', function (Request $request) {
+            $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
             return Limit::perMinute(5)->by($throttleKey);
         });
 
+        // ⏱️ Limitar intentos 2FA
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
