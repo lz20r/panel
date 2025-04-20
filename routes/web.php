@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+
 // Controladores
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SettingsController;
@@ -30,7 +31,7 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-}) ->name('welcome') 
+})->name('cinammon.es')
     ->middleware(LogAccess::class);
 
 // Página de inicio de sesión
@@ -45,18 +46,17 @@ Route::get('/register', function () {
 })->name('register')
     ->middleware(LogAccess::class);
 
-
-// Página de restablecimiento de contraseña
+// Página de recuperación de contraseña
 Route::get('/forgot-password', function () {
     return Inertia::render('Auth/ForgotPassword');
 })->name('password.request')
     ->middleware(LogAccess::class);
 
-// Página de restablecimiento de contraseña (enlace)
-Route::get('/reset-password/{token}', function (Request $request) {
+// Página de restablecimiento de contraseña
+Route::get('/reset-password/{token}', function (Request $request, $token) {
     return Inertia::render('Auth/ResetPassword', [
         'email' => $request->input('email'),
-        'token' => $request->route('token'),
+        'token' => $token,
     ]);
 })->name('password.reset')
     ->middleware(LogAccess::class);
@@ -72,6 +72,7 @@ Route::get('/verify-email/{id}/{hash}', function (Request $request) {
     ->name('verification.verify')
     ->middleware(LogAccess::class);
 
+
 // Pagina de aceptación de términos
 Route::get('/terms', function () {
     return Inertia::render('Auth/AcceptTerms');
@@ -81,8 +82,13 @@ Route::get('/terms', function () {
 Route::get('/privacy', function () {
     return Inertia::render('Auth/AcceptTerms');
 })->name('privacy')
-    ->middleware(LogAccess::class);    
+    ->middleware(LogAccess::class);
 
+// Notificación
+Route::get('/notification', function () {
+    return Inertia::render('Notification');
+})->name('notification')
+    ->middleware(LogAccess::class);
 // Modo oscuro
 Route::post('/darkMode', function (Request $request) {
     /** @var \App\Models\User $user */
@@ -119,6 +125,9 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+    // Eliminar logs antiguos (solo si hay más de 100)
+    Route::delete('/dashboard/logs/clear-old', [LogsController::class, 'clearOld'])->name('logs.clear')
+        ->middleware(LogAccess::class);
     Route::middleware(['auth'])->group(function () {
         Route::get('/terms', function () {
             return Inertia::render('TermsOfService');
@@ -128,39 +137,39 @@ Route::middleware([
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard')
             ->middleware(LogAccess::class);
-        Route::get('/settings', [SettingsController::class, 'index'])
+        Route::get('/dashboard/settings', [SettingsController::class, 'index'])
             ->name('settings')
             ->middleware(LogAccess::class);
-        Route::get('/logs', [LogsController::class, 'index'])->name('logs');
-        Route::get('/server/eggs', [EggsController::class, 'index'])
+        Route::get('/dashboard/logs', [LogsController::class, 'index'])->name('logs');
+        Route::get('/dashboard/server/eggs', [EggsController::class, 'index'])
             ->name('server.eggs')
             ->middleware(LogAccess::class);
         Route::get('/server/nodes', [NodesController::class, 'index'])
             ->name('server.nodes')
             ->middleware(LogAccess::class);
-        Route::get('/server/servers', [ServerListController::class, 'index'])
+        Route::get('/dashboard/server/servers', [ServerListController::class, 'index'])
             ->name('server.servers')
             ->middleware(LogAccess::class);
-        Route::get('/users/roles', [RolesController::class, 'index'])
+        Route::get('/dashboard/users/roles', [RolesController::class, 'index'])
             ->name('users.roles')
             ->middleware(LogAccess::class);
-        Route::get('/users', [UserController::class, 'index'])
+        Route::get('/dashboard/users', [UserController::class, 'index'])
             ->name('users')
             ->middleware(LogAccess::class);
 
-        Route::get('/advanced/health', [HealthController::class, 'index'])
+        Route::get('/dashboard/advanced/health', [HealthController::class, 'index'])
             ->name('advanced.health')
             ->middleware(LogAccess::class);
-        Route::get('/advanced/api', [APIKeysController::class, 'index'])
+        Route::get('/dashboard/advanced/api', [APIKeysController::class, 'index'])
             ->name('advanced.api')
             ->middleware(LogAccess::class);
-        Route::get('/advanced/db', [DBHostsController::class, 'index'])
+        Route::get('/dashboard/advanced/db', [DBHostsController::class, 'index'])
             ->name('advanced.db')
             ->middleware(LogAccess::class);
-        Route::get('/advanced/mounts', [MountsController::class, 'index'])
+        Route::get('/dashboard/advanced/mounts', [MountsController::class, 'index'])
             ->name('advanced.mounts')
             ->middleware(LogAccess::class);
-        Route::get('/advanced/webhooks', [WebhooksController::class, 'index'])
+        Route::get('/dashboard/advanced/webhooks', [WebhooksController::class, 'index'])
             ->name('advanced.webhooks')
             ->middleware(LogAccess::class);
     });
