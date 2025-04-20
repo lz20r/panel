@@ -13,6 +13,7 @@
         "laravel/jetstream": "^5.3",
         "laravel/sanctum": "^4.0",
         "laravel/socialite": "^5.18",
+        "laravel/telescope": "^5.7",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.0",
         "spatie/laravel-activitylog": "^4.10",
