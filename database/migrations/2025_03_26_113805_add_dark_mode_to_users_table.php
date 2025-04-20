@@ -14,8 +14,10 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('dark_mode');
-        });
+        if (Schema::hasColumn('users', 'dark_mode')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('dark_mode');
+            });
+        }
     }
 };
