@@ -35,6 +35,14 @@ class CreateNewUser implements CreatesNewUsers
                 'password' => Hash::make($input['password']),
             ]), function (User $user) {
                 $this->createTeam($user);
+                \App\Helpers\Logger::log(
+                    '🟢 Nuevo usuario registrado: ' . $user->name . ' (' . $user->email . ')',
+                    'register',
+                    [
+                        'user_id' => $user->id,
+                        'timestamp' => now(),
+                    ]
+                );
             });
         });
     }

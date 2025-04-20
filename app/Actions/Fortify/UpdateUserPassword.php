@@ -28,5 +28,15 @@ class UpdateUserPassword implements UpdatesUserPasswords
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
+
+        // ✅ Log personalizado del cambio de contraseña
+        \App\Helpers\Logger::log(
+            '🔐 Usuario actualizó su contraseña: ' . $user->name . ' (' . $user->email . ')',
+            'update_password',
+            [
+                'user_id' => $user->id,
+                'timestamp' => now(),
+            ]
+        );
     }
 }

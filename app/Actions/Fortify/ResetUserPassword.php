@@ -25,5 +25,14 @@ class ResetUserPassword implements ResetsUserPasswords
         $user->forceFill([
             'password' => Hash::make($input['password']),
         ])->save();
+
+        \App\Helpers\Logger::log(
+            '🟡 Usuario restableció la contraseña: ' . $user->name . ' (' . $user->email . ')',
+            'password_reset',
+            [
+                'user_id' => $user->id,
+                'timestamp' => now(),
+            ]
+        );
     }
 }
