@@ -4,14 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
 class LogEntry extends Model
 {
-    public $timestamps = false; // ⚠️ Importante si no usas updated_at
-
+    public $timestamps = false; 
     protected $fillable = [
         'user_id',
         'type',
