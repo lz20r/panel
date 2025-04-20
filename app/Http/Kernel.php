@@ -8,7 +8,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
-use App\Http\Middleware\LogAccess;
+use App\Http\Middleware\LogAccess; 
 class Kernel extends HttpKernel
 {
     // No se necesita agregar middleware aquí
@@ -20,7 +20,7 @@ class Kernel extends HttpKernel
             AddQueuedCookiesToResponse::class,
             StartSession::class,
             ShareErrorsFromSession::class,
-            SubstituteBindings::class,
+            SubstituteBindings::class, 
         ],
 
         'api' => [
