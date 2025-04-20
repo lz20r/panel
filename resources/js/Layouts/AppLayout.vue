@@ -1,61 +1,87 @@
 <script setup>
-    import { ref, onMounted } from 'vue';
-    import { Link, router, usePage, Head } from '@inertiajs/vue3';
-    import ApplicationMark from '@/Components/ApplicationMark.vue';
-    import Dropdown from '@/Components/Dropdown.vue';
-    import DropdownLink from '@/Components/DropdownLink.vue';
-    import '@fortawesome/fontawesome-free/css/all.min.css';
-    import axios from 'axios';
+import { ref, onMounted } from 'vue';
+import { Link, router, usePage, Head } from '@inertiajs/vue3';
+import ApplicationMark from '@/Components/ApplicationMark.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import axios from 'axios';
 
-    const currentTab = ref(route().current('dashboard') ? 'dashboard' : (route().current('settings') ? 'settings' : 'logs'));
-    const logout = () => router.post(route('logout'));
-    const showingNavigationDropdown = ref(false);
-    const page = usePage();
+const currentTab = ref(route().current('dashboard') ? 'dashboard' : (route().current('settings') ? 'settings' : 'logs'));
+const logout = () => router.post(route('logout'));
+const showingNavigationDropdown = ref(false);
+const page = usePage();
 
-    const switchToTeam = (team) => {
-        router.put(route('current-team.update'), {
-            team_id: team.id,
-        }, {
-            preserveState: false,
-        });
-    };
-
-    const darkMode = ref(false);
-
-    onMounted(() => {
-        const saved = localStorage.getItem('darkMode');
-
-        if (saved === null) {
-            darkMode.value = $page.props.auth.user?.dark_mode ?? false;
-        } else {
-            darkMode.value = saved === 'true';
-        }
-
-        updateTheme();
+const switchToTeam = (team) => {
+    router.put(route('current-team.update'), {
+        team_id: team.id,
+    }, {
+        preserveState: false,
     });
-    function updateTheme() {
-        document.documentElement.classList.toggle('dark', darkMode.value);
-        localStorage.setItem('darkMode', darkMode.value);
-        document.body.style.background = darkMode.value
-            ? '#000000'
-            : '#ffffff';
-        document.body.style.color = darkMode.value ? '#fff' : '#000';
+};
+
+const props = defineProps({
+    can: Object,
+    jetstream: Object,
+    auth: Object,
+    teams: Array,
+    team: Object,
+    mustVerifyEmail: Boolean,
+    status: String,
+    error: String,
+    flash: Object,
+})
+const darkMode = ref(false);
+
+onMounted(() => {
+    const saved = localStorage.getItem('darkMode');
+
+    if (saved === null) {
+        // Si no hay valor guardado, se establece el modo oscuro según la preferencia del sistema
+        darkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } else {
+        darkMode.value = saved === 'true';
     }
 
-    function toggleDarkMode() {
-        darkMode.value = !darkMode.value;
-        updateTheme();
+    updateTheme();
+});
+function updateTheme() {
+    document.documentElement.classList.toggle('dark', darkMode.value);
+    localStorage.setItem('darkMode', darkMode.value);
+    document.body.style.background = darkMode.value
+        ? '#000000'
+        : '#ffffff';
+    document.body.style.color = darkMode.value ? '#fff' : '#000';
+}
 
-        axios.post('/darkMode', {
-            dark: darkMode.value
+function toggleDarkMode() {
+    darkMode.value = !darkMode.value;
+    updateTheme();
+
+    axios.post('/darkMode', {
+        dark: darkMode.value
+    })
+        .then(() => {
+            console.log('Dark mode guardado 🖤');
         })
-            .then(() => {
-                console.log('Dark mode guardado 🖤');
-            })
-            .catch((error) => {
-                console.warn('Error al guardar el dark mode', error);
-            });
+        .catch((error) => {
+            console.warn('Error al guardar el dark mode', error);
+        });
+}
+
+const notifications = ref([]); // Notificaciones del usuario
+const unreadCount = ref(0); // Contador de notificaciones no leídas
+
+// Obtener las notificaciones no leídas
+const fetchNotifications = async () => {
+    try {
+        const response = await Inertia.get('/notifications'); // Llama a la ruta del backend
+        notifications.value = response.data;
+        unreadCount.value = notifications.value.filter(notification => !notification.read_at).length; // Cuenta las no leídas
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
     }
+};
 </script>
 
 <template>
@@ -167,19 +193,47 @@
                                 </template>
                                 <template #content>
                                     <div class="px-4 py-2 text-xs text-gray-400">Notifications</div>
-                                    <div class="px-4 py-2 text-xs text-gray-400">No new notifications</div>
+
+                                    <!-- Mostrar las notificaciones -->
+                                    <div v-if="notifications.length === 0" class="px-4 py-2 text-xs text-gray-500">
+                                        No new notifications
+                                    </div>
+
+                                    <div v-if="notifications.length > 0">
+                                        <div v-for="(notification, index) in notifications" :key="index"
+                                            class="px-4 py-2 text-xs text-gray-500">
+                                            {{ notification.data.message }}
+                                            <small class="text-xs text-gray-400">{{ notification.created_at }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="border-t border-zinc-700 my-1" /> 
                                 </template>
                             </Dropdown>
-                            <!-- Messages Dropdown -->
                             <Dropdown align="right" width="48">
                                 <template #trigger>
                                     <button class="flex text-sm focus:outline-none focus:border-zinc-600">
                                         <i class="fas fa-envelope"></i>
+                                        <span v-if="unreadCount > 0"
+                                            class="ml-1 text-xs text-red-500">{{ unreadCount }}</span>
+                                        <!-- Muestra el número de notificaciones no leídas -->
                                     </button>
                                 </template>
+
                                 <template #content>
                                     <div class="px-4 py-2 text-xs text-gray-400">Messages</div>
-                                    <div class="px-4 py-2 text-xs text-gray-400">No new messages</div>
+
+                                    <!-- Mostrar las notificaciones -->
+                                    <div v-if="notifications.length === 0" class="px-4 py-2 text-xs text-gray-500">
+                                        No new messages
+                                    </div>
+
+                                    <div v-if="notifications.length > 0">
+                                        <div v-for="(notification, index) in notifications" :key="index"
+                                            class="px-4 py-2 text-xs text-gray-500">
+                                            {{ notification.data.message }}
+                                            <small class="text-xs text-gray-400">{{ notification.created_at }}</small>
+                                        </div>
+                                    </div>
                                 </template>
                             </Dropdown>
                             <!-- Dark Mode Toggle -->
