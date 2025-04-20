@@ -8,6 +8,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
+use App\Http\Middleware\LogLogout; 
 use App\Http\Middleware\LogAccess; 
 class Kernel extends HttpKernel
 {
@@ -34,5 +35,6 @@ class Kernel extends HttpKernel
     // Registrar middlewares por su alias
     protected $routeMiddleware = [
         'log.access' => LogAccess::class,
+        'log.logout' => LogLogout::class,
     ];
 }

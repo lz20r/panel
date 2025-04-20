@@ -13,13 +13,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Laravel\Fortify\Contracts\LoginResponse;
-use Laravel\Fortify\Contracts\LogoutResponse;
-use Laravel\Fortify\Contracts\RegisterResponse;
+use App\Http\Responses\CustomLogoutResponse;
+use Laravel\Fortify\Contracts\LogoutResponse; 
 use Laravel\Fortify\Actions\AttemptToAuthenticate;
-use Laravel\Fortify\Actions\PrepareAuthenticatedSession;
-use Illuminate\Auth\Events\Login;
+use Laravel\Fortify\Actions\PrepareAuthenticatedSession; 
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -28,7 +25,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LogoutResponse::class, CustomLogoutResponse::class);
     }
 
     /**

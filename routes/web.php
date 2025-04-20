@@ -1,7 +1,7 @@
 <?php
 
-use App\Helpers\Logger;
 use App\Http\Middleware\LogAccess;
+use App\Http\Middleware\LogLogout;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Application;
@@ -15,13 +15,14 @@ use App\Http\Controllers\LogsController;
 use App\Http\Controllers\Server\EggsController;
 use App\Http\Controllers\Server\NodesController;
 use App\Http\Controllers\Server\ServerListController;
+use App\Http\Controllers\LogoutController;
 use App\Http\Controllers\User\RolesController;
 use App\Http\Controllers\User\UserController;
 use App\Http\Controllers\Advanced\HealthController;
 use App\Http\Controllers\Advanced\APIKeysController;
 use App\Http\Controllers\Advanced\DBHostsController;
 use App\Http\Controllers\Advanced\MountsController;
-use App\Http\Controllers\Advanced\WebhooksController;
+use App\Http\Controllers\Advanced\WebhooksController; 
 
 // Página principal
 Route::get('/', function () {
@@ -39,6 +40,11 @@ Route::get('/login', function () {
     return Inertia::render('Auth/Login');
 })->name('login')
     ->middleware(LogAccess::class);
+
+// Ruta de cierre de sesión
+Route::post('/logout', [LogoutController::class, 'logout'])
+    ->name('logout')
+    ->middleware(LogLogout::class);
 
 // Página de registro
 Route::get('/register', function () {
